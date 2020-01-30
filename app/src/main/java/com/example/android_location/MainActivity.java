@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
 public class MainActivity extends AppCompatActivity {
@@ -95,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 fusedLocationProviderClient.requestLocationUpdates(locationRequest,locationCallback, Looper.myLooper());
                 btn_update.setEnabled(!btn_update.isEnabled());
-                btn_stop.setEnabled(!btn_stop.isEnabled());
+                btn_stop.setEnabled(true);
             }
         });
 
@@ -103,22 +104,34 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 fusedLocationProviderClient.removeLocationUpdates(locationCallback);
-                btn_update.setEnabled(!btn_update.isEnabled());
+                btn_update.setEnabled(true);
                 btn_stop.setEnabled(!btn_stop.isEnabled());
             }
         });
     }
 
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//
+//        if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
+//            if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+//            }
+//        }
+//    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(grantResults.length<=0){
+            //we receive an empty array
+            Log.i(TAG,"onRequestPermissionResult"+"User interaction canceled");
+        }
+        else {
 
-        if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
-            if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-            }
         }
     }
+
 
     public void buildLocationRequest(){
         locationRequest = new LocationRequest();
@@ -129,7 +142,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void buildLocationCallback(){
-        locationCallback = new LocationCallback();
+        locationCallback = new LocationCallback(){
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                for (Location location: locationResult.getLocations()){
+                    location_txtView.setText(String.valueOf(location.getLatitude())+ "/"+String.valueOf(location.getLongitude()));
+                }
+            }
+        };
     }
 
 }
